@@ -4,6 +4,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 
 @Entity
@@ -26,6 +27,9 @@ public class ClientProfes extends Client{
     private String gouvernorat;
     private String denominationSociale;
 
+    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<Notation> notations;
+
     @Builder
     public ClientProfes(String denominationSociale, Date dateRNE, String secteurActivite, String perimetreActivite, double chiffreAffaire, String segment, String gouvernorat , long id, long codeRelation, String idNat, String codeRelationFlexcube, String identifiantProspect, String nom, String profession, String adresse, String agence, String ville, String region, Date dateNaissance, Date dateDebutRelation, String autre) {
         super();
@@ -38,6 +42,7 @@ public class ClientProfes extends Client{
         this.gouvernorat = gouvernorat;
         super.setIdNat(idNat);
         super.setCodeRelationFlexcube(codeRelationFlexcube);
+        this.setCodeRelation(codeRelation);
         super.setIdentifiantProspect(identifiantProspect);
         super.setNom(nom);
         super.setProfession(profession);
@@ -92,6 +97,14 @@ public class ClientProfes extends Client{
 
     public void setSegment(String segment) {
         this.segment = segment;
+    }
+
+    public List<Notation> getNotations() {
+        return notations;
+    }
+
+    public void setNotations(List<Notation> notations) {
+        this.notations = notations;
     }
 
     public String getGouvernorat() {

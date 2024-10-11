@@ -2,13 +2,8 @@ package com.pfe.Bank.controller;
 import com.pfe.Bank.dto.ScoreDto;
 import com.pfe.Bank.dto.VariableDto;
 import com.pfe.Bank.exception.MissingEntity;
-import com.pfe.Bank.model.ENUMERATION;
-import com.pfe.Bank.model.Modele;
-import com.pfe.Bank.model.Score;
-import com.pfe.Bank.model.Variable;
-import com.pfe.Bank.repository.ModeleRepository;
-import com.pfe.Bank.repository.ScoreVariableRepository;
-import com.pfe.Bank.repository.VariableRepository;
+import com.pfe.Bank.model.*;
+import com.pfe.Bank.repository.*;
 import com.pfe.Bank.service.CalculScoreService;
 import com.pfe.Bank.service.VariableService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.pfe.Bank.model.Type.ENUMERATION;
@@ -36,6 +32,10 @@ public class VariableController {
     CalculScoreService calculScoreService;
     @Autowired
     ScoreVariableRepository scoreVariableRepository;
+    @Autowired
+    ClientProfesRepository clientProfesRepository;
+    @Autowired
+    SituationRepository situationRepository;
 
     @PostMapping("/addVariable/{modelId}")
     public ResponseEntity<Variable> addVariable(@RequestBody VariableDto variableRequest, @PathVariable long modelId) {
@@ -48,6 +48,7 @@ public class VariableController {
             variable.setDescription(variableRequest.getDescription());
             variable.setCoefficient(variableRequest.getCoefficient());
             variable.setType(variableRequest.getType());
+            variable.setResponseMeaning(variableRequest.getResponseMeaning());
             variable.setModele(modele);
 
             Variable createdVariable = variableService.createVariable(variable, modelId);
@@ -75,6 +76,109 @@ public class VariableController {
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
+    }
+
+
+    // hedhi
+    @GetMapping("/getAllVariables/{clientId}")
+    public ResponseEntity<List<VariableDto>> getAllVariablesWithScores(@PathVariable long clientId) {
+        List<Variable> variables = variableService.getAllVariable();
+        /*Modele modele = modeleRepository.findByUsedTrue()
+                .orElseThrow(() -> new EntityNotFoundException("No active Modele found"));*/
+        System.out.println(variables.toString());
+
+        List<VariableDto> variableDtos = variables.stream().map(variable -> {
+            VariableDto variableDto = new VariableDto();
+            variableDto.setId(variable.getId());
+            variableDto.setCode(variable.getCode());
+            variableDto.setCoefficient(variable.getCoefficient());
+            variableDto.setType(variable.getType());
+            variableDto.setDescription(variable.getDescription());
+            variableDto.setResponse(variableDto.getResponse());
+            //variableDto.setModelId(variable.getModele().getId());
+
+            if(ENUMERATION.equals(variable.getType())) {
+                List<ScoreDto> scoreDtos = variable.getScores().stream()
+                        .map(score -> {
+                            com.pfe.Bank.model.ENUMERATION enumeration = (ENUMERATION) score;
+                            ScoreDto scoreDto = new ScoreDto();
+                            scoreDto.setId(score.getId());
+                            scoreDto.setScore(score.getScore());
+                            scoreDto.setValeur(enumeration.getValeur());
+                            return scoreDto;
+                        }).collect(Collectors.toList());
+
+                variableDto.setScores(scoreDtos);
+            }
+            System.out.println(variable.getScores().toString());
+
+            ClientProfes clientProfes = clientProfesRepository.findById(clientId).get();
+            SituationClientProfes situationClientProfes = situationRepository.findByCodeRelation(clientProfes.getCodeRelation()).get(0);
+
+            if(Objects.nonNull(variable.getResponseMeaning())) {
+                switch (variable.getResponseMeaning()) {
+                    case PROFESSION:
+                        variableDto.setResponse(clientProfes.getProfession());
+                        break;
+
+                    case DATENAISSANCE:
+                        variableDto.setResponse(clientProfes.getDateNaissance().toString());
+                        break;
+
+                    case SECTEURACTIVITE:
+                        variableDto.setResponse(clientProfes.getSecteurActivite());
+                        break;
+
+                    case CHIFFREAFFAIRE:
+                        variableDto.setResponse(String.valueOf(clientProfes.getChiffreAffaire()));
+                        break;
+
+                    case DENOMINATIONSOCIALE:
+                        variableDto.setResponse(clientProfes.getDenominationSociale());
+                        break;
+                    case MntEnConsolidation:
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getMntEnConsolidation()));
+                        break;
+                    case  ANCIENNETEIMPAYES :
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getAncienneteImpayes()));
+                        break;
+                    case IMPAYE:
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getImpaye()));
+                        break;
+                    case SOLDEMOYENANNUELANNEEN:
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getSoldeMoyenAnnuelAnneeN()));
+                        break;
+                    case MONTANTIMPAYES:
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getMontantImpayes()));
+                        break;
+                    case REGULARITEECHEANCES:
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getRegulariteEcheances()));
+                        break;
+
+                    case RATIOENGAGEMENTCDR:
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getRatioEngagementCDR()));
+                        break;
+                    case SOLDEMOYENANNUEANNEEN1:
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getSoldeMoyenAnnuelAnneeN1()));
+                        break;
+                    case CLASSERISQUELEGACY:
+                        variableDto.setResponse(String.valueOf(situationClientProfes.getClasseRisqueLegacy()));
+                        break;
+
+                    case IDENTIFIANTNATIONAL:
+                        variableDto.setResponse(String.valueOf(clientProfes.getIdNat()));
+                        break;
+                    case DATEDENAISSANCE:
+                        variableDto.setResponse(String.valueOf(clientProfes.getDateNaissance()));
+                        break;
+                }
+            }
+
+
+            return variableDto;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(variableDtos);
     }
 
     @GetMapping("/getAllVariables")
@@ -126,6 +230,7 @@ public class VariableController {
         variableDto.setCoefficient(variable.getCoefficient());
         variableDto.setType(variable.getType());
         variableDto.setModelId(variable.getModele().getId());
+        variableDto.setResponse(variableDto.getResponse());
         //variableDto.setScores(scoreDtos);
 
         return ResponseEntity.ok(variableDto);

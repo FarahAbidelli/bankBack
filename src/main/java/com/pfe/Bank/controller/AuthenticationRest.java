@@ -95,8 +95,8 @@ public class AuthenticationRest {
                                 Role roleadmin = roleRepository.findByName(ERole.ROLE_ADMIN)
                                         .orElseThrow(() -> new RuntimeException("Error : role is not found"));
                                 roles.add(roleadmin);
-                            case "secretaire":
-                                Role rolesec = roleRepository.findByName(ERole.ROLE_SECRETAIRE)
+                            case "manager":
+                                Role rolesec = roleRepository.findByName(ERole.ROLE_MANAGER)
                                         .orElseThrow(()-> new RuntimeException("Error : role is not found"));
                                 roles.add(rolesec);
                             default:
@@ -138,9 +138,12 @@ public class AuthenticationRest {
 
         // récupérer la list des roles
 
+
         List<String> roles = userdetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
+
+        System.out.println(roles);
 
         return ResponseEntity.ok(
                 new JwtResponse(

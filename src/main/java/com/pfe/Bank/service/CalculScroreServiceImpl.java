@@ -100,6 +100,7 @@ public class CalculScroreServiceImpl implements CalculScoreService{
         map.put("deleted",Boolean.TRUE);
         return map;
     }
+    // hedhi
     @Override
     public List<DATE> getAllSVDates() {
         return svDateRepository.findAll();

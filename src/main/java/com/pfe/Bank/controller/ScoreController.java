@@ -174,20 +174,30 @@ public class ScoreController {
         return calculScoreService.deleteScore(id);
     }
 
-    @PostMapping("notation")
-    public Notation saveNotation(@RequestBody Notation notation){
-        return notationService.createNotation(notation);
+    // new
+
+// HEDHIII
+
+    @PostMapping("notation/{clientId}")
+    public Notation saveNotation(@RequestBody Notation notation,@PathVariable Long clientId){
+        return notationService.createNotation(notation,clientId);
     }
 
     @PutMapping("notation")
     public Notation updateNotation(@RequestBody NotationDto notation){
         return notationService.updateNotation(notation);
     }
+// HEDHII
+    @PostMapping("/note/{clientId}")
+    public Notation calculateNote(@RequestBody Notation notation,@PathVariable Long clientId){
+        return notationService.determineNote(notation,clientId);
+    }
 
     @PostMapping("/note")
-    public Notation calculateNote(@RequestBody Notation notation){
-        return notationService.determineNote(notation);
+    public Notation calculateNotea(@RequestBody Notation notation){
+        return notationService.determineNotea(notation);
     }
+
 
     @GetMapping("/done")
     public List<NotationQuest> getTerminatedations(){
@@ -203,7 +213,10 @@ public class ScoreController {
     public List<VariableResponse> getVariableResponses(@PathVariable Long id){
         return notationService.getInProgress(id);
     }
-
+    @GetMapping("/getNotationById/{id}")
+    public Notation getNotationById(@PathVariable Long id) throws MissingEntity {
+        return notationService.getNotationById(id);
+    }
 
 
 }

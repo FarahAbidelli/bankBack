@@ -1,6 +1,8 @@
 package com.pfe.Bank.service;
 
+import com.pfe.Bank.exception.MissingEntity;
 import com.pfe.Bank.model.*;
+import com.pfe.Bank.repository.ClientRepository;
 import com.pfe.Bank.repository.NotationRepository;
 import com.pfe.Bank.repository.ResponseRepository;
 import com.pfe.Bank.repository.VariableRepository;
@@ -10,10 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static com.pfe.Bank.model.Type.*;
 
@@ -26,10 +25,15 @@ public class NotationService {
     private VariableRepository variableRepository;
     @Autowired
     private ResponseRepository responseRepository;
+    @Autowired
+    private ClientRepository clientRepository;
 
-    public Notation createNotation(Notation notation){
+
+    public Notation createNotation(Notation notation,long id){
+        ClientProfes client = (ClientProfes) clientRepository.findById(id).get();
+
         List<Response> responses = notation.getResponses();
-
+        notation.setClient(client);
         notation.setResponses(null);
 
         Notation savedNotation = notationRepository.save(notation);
@@ -37,8 +41,20 @@ public class NotationService {
         for(Response response : responses){
             response.setNotation(savedNotation);
         }
+
+        if(Objects.isNull(client.getNotations())){
+            List<Notation> notations = new ArrayList<>();
+            notations.add(notation);
+            client.setNotations(notations);
+        }
+        else {
+            client.getNotations().add(notation);
+        }
+
+
         notation.setResponses(responses);
         notationRepository.save(notation);
+        clientRepository.save(client);
         return notation;
     }
 
@@ -107,7 +123,46 @@ public class NotationService {
         return notationRepository.findByStatus(ResponseStatus.IN_PROGRESS);
     }
 
-    public Notation determineNote(Notation notation){
+
+    // HEDHI NOTE FINAL ( bouton noter)
+    public Notation determineNote(Notation notation,long id){
+        ClientProfes client = (ClientProfes) clientRepository.findById(id).get();
+        Double note = notation.getResponses().stream()
+                .map(this::calculateNote)
+                .reduce(0.0,Double::sum);
+        System.out.println(note);
+        notation.setNote(note);
+
+        List<Response> responses = notation.getResponses();
+        notation.setClient(client);
+        notation.setResponses(null);
+
+
+        if(Objects.isNull(client.getNotations())){
+            List<Notation> notations = new ArrayList<>();
+            notations.add(notation);
+            client.setNotations(notations);
+        }
+        else {
+            client.getNotations().add(notation);
+        }
+
+
+
+
+        Notation savedNotation = notationRepository.save(notation);
+
+        for(Response response : responses){
+            response.setNotation(savedNotation);
+        }
+        notation.setResponses(responses);
+        clientRepository.save(client);
+        notationRepository.save(notation);
+
+        return notation;
+    }
+
+    public Notation determineNotea(Notation notation){
         Double note = notation.getResponses().stream()
                 .map(this::calculateNote)
                 .reduce(0.0,Double::sum);
@@ -116,7 +171,9 @@ public class NotationService {
 
         List<Response> responses = notation.getResponses();
 
-        notation.setResponses(null);
+        for(Response response: responses){
+            response.setNotation(notation);
+        }
 
         Notation savedNotation = notationRepository.save(notation);
 
@@ -125,6 +182,7 @@ public class NotationService {
         }
         notation.setResponses(responses);
         notationRepository.save(notation);
+
         return notation;
     }
 
@@ -189,7 +247,7 @@ public class NotationService {
 
         double responseValue = Double.parseDouble(response.getResponse());
 
-        return vMin >=  responseValue && responseValue <= vMax;
+        return vMin <=  responseValue && responseValue <= vMax;
     }
 
     public boolean isMatchingDate(Score score , Response response) throws ParseException {
@@ -202,5 +260,11 @@ public class NotationService {
         return date.getValeur().equals(responseDate);
     }
 
-
+    public Notation getNotationById(long id) throws MissingEntity {
+        Optional<Notation> optional = notationRepository.findById(id);
+        if (!optional.isPresent()) {
+            throw new MissingEntity("Notation not found with id: " + id);
+        }
+        return optional.get();
+    }
 }

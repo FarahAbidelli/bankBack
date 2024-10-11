@@ -20,6 +20,16 @@ public class VariableDto {
     private Type type;
     private Long modelId;
     private List<ScoreDto> scores;
+    private Responses responseMeaning;
+    private String response;
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
+    }
 
     public static VariableDto of(Variable variable) {
         VariableDto dto = new VariableDto();
@@ -54,6 +64,14 @@ public class VariableDto {
                 .collect(Collectors.toList()));
 
         return dto;
+    }
+
+    public Responses getResponseMeaning() {
+        return responseMeaning;
+    }
+
+    public void setResponseMeaning(Responses responseMeaning) {
+        this.responseMeaning = responseMeaning;
     }
 
     public long getId() {

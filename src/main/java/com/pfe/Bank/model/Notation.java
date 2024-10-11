@@ -19,6 +19,18 @@ public class Notation {
     @OneToMany(mappedBy = "notation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Response> responses;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    private ClientProfes client;
+
+    public ClientProfes getClient() {
+        return client;
+    }
+
+    public void setClient(ClientProfes client) {
+        this.client = client;
+    }
+
     public long getId() {
         return id;
     }

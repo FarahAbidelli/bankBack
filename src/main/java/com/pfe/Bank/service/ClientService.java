@@ -83,15 +83,16 @@ public class ClientService {
                     .stream()
                     .map(csvLine -> {
                                 try {
+                                    System.out.println(csvLine.getCodeRelation());
                                     ClientProfes clientProfes = ClientProfes.builder()
-                                            .codeRelation(csvLine.getCodeRelation())
-                                            .idNat(csvLine.getIdNat())
                                             .codeRelationFlexcube(csvLine.getCodeRelationFlexcube())
                                             .identifiantProspect(csvLine.getIdentifiantProspect())
                                             .profession(csvLine.getProfession())
                                             .adresse(csvLine.getAdresse())
                                             .agence(csvLine.getAgence())
                                             .ville(csvLine.getVille())
+                                            .codeRelation(csvLine.getCodeRelation())
+                                            .idNat(csvLine.getIdNat())
                                             .region(csvLine.getRegion())
                                             .dateNaissance(simpleDateFormat.parse(csvLine.getDateNaissance()))
                                             .dateDebutRelation(simpleDateFormat.parse(csvLine.getDateDebutRelation()))

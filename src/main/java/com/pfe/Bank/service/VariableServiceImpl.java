@@ -2,6 +2,7 @@ package com.pfe.Bank.service;
 import com.pfe.Bank.dto.ScoreDto;
 import com.pfe.Bank.exception.MissingEntity;
 import com.pfe.Bank.model.*;
+import com.pfe.Bank.repository.ClientProfesRepository;
 import com.pfe.Bank.repository.ModeleRepository;
 import com.pfe.Bank.repository.ScoreVariableRepository;
 import com.pfe.Bank.repository.VariableRepository;
@@ -25,7 +26,8 @@ public class VariableServiceImpl implements VariableService{
     ModeleRepository modeleRepository;
     @Autowired
     ScoreVariableRepository scoreVariableRepository;
-
+    @Autowired
+    ClientProfesRepository clientProfesRepository;
 
 
     /*@Override
